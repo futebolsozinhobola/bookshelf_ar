@@ -12,20 +12,22 @@
 <body style="margin: 0; overflow: hidden;">
 
     <!-- A-Frame Scene -->
-    <a-scene embedded arjs>
+    <!-- ATUALIZAÇÃO: Adicionamos parâmetros ao 'arjs' para solicitar uma resolução maior da câmera -->
+    <!-- Isso melhora a qualidade da imagem, mas pode impactar o desempenho em celulares mais antigos -->
+    <a-scene embedded arjs='sourceType: webcam; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960;'>
         <a-assets>
             <a-asset-item id="bookshelf" src="assets/estante.glb"></a-asset-item>
         </a-assets>
 
         <a-marker type="pattern" url="assets/marcador.patt">
             <!-- Modelo 3D Interativo -->
-            <!-- Adicionamos um ID 'modelo' para poder selecioná-lo com JavaScript -->
-            <!-- A animação automática foi removida -->
+            <!-- ATUALIZAÇÃO: Aumentamos a 'scale' para o modelo parecer maior -->
+            <!-- e ajustamos a posição 'y' para que ele continue 'sentado' no marcador -->
             <a-gltf-model
                 id="modelo"
                 src="#bookshelf"
-                position="0 0.5 0"
-                scale="0.1 0.1 0.1"
+                position="0 0.75 0"
+                scale="0.25 0.25 0.25"
                 rotation="-90 0 0"
             ></a-gltf-model>
         </a-marker>
@@ -55,6 +57,7 @@
             const drag = (event) => {
                 if (!isDragging) return;
 
+                event.preventDefault(); // Previne o scroll da página no celular
                 const touch = event.touches ? event.touches[0] : event;
                 const deltaX = touch.clientX - previousClientX;
                 
