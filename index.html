@@ -4,88 +4,281 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca do Conhecimento AR</title>
-    <!-- Importação da biblioteca A-Frame -->
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <!-- Importação da biblioteca AR.js para A-Frame -->
+    
+    <!-- A-Frame e AR.js -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Indicador de carregamento */
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+        }
+        
+        /* Instruções para o usuário */
+        #instructions {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            max-width: 250px;
+            z-index: 100;
+        }
+        
+        /* Botão para alternar instruções */
+        #toggle-instructions {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 101;
+        }
+    </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
-
-    <!-- A-Frame Scene -->
-    <!-- CORREÇÃO: Simplificamos a configuração do arjs para maior compatibilidade. -->
-    <a-scene embedded arjs>
-
-        <!-- CORREÇÃO: Adicionamos luzes à cena. Sem luz, o modelo 3D fica preto e invisível. -->
-        <!-- Luz Ambiente: Ilumina todas as partes do modelo igualmente. -->
-        <a-light type="ambient" color="#888"></a-light>
-        <!-- Luz Direcional: Simula uma fonte de luz como o sol, criando realces e sombras. -->
-        <a-light type="directional" color="#FFF" intensity="0.8" position="-1 1 2"></a-light>
-
+<body>
+    <!-- Indicador de carregamento -->
+    <div id="loading">
+        <div>Carregando AR...</div>
+        <div style="font-size: 12px; margin-top: 10px;">
+            Aponte a câmera para o marcador
+        </div>
+    </div>
+    
+    <!-- Instruções -->
+    <div id="instructions">
+        <strong>Instruções:</strong><br>
+        • Aponte para o marcador<br>
+        • Toque e arraste para rotacionar<br>
+        • Mantenha boa iluminação
+    </div>
+    
+    <!-- Botão para alternar instruções -->
+    <button id="toggle-instructions">?</button>
+    
+    <!-- Cena AR -->
+    <a-scene
+        embedded
+        arjs="sourceType: webcam; 
+              debugUIEnabled: false; 
+              detectionMode: mono_and_matrix; 
+              matrixCodeType: 3x3;
+              trackingMethod: best;
+              maxDetectionRate: 60;
+              canvasWidth: 640;
+              canvasHeight: 480;"
+        renderer="logarithmicDepthBuffer: true; 
+                 colorManagement: true; 
+                 sortObjects: true;"
+        vr-mode-ui="enabled: false"
+        loading-screen="enabled: false">
+        
+        <!-- Assets -->
         <a-assets>
             <a-asset-item id="bookshelf" src="assets/estante.glb"></a-asset-item>
         </a-assets>
-
-        <a-marker type="pattern" url="assets/marcador.patt">
+        
+        <!-- Iluminação otimizada -->
+        <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="0.8" position="-2 4 2"></a-light>
+        <a-light type="point" color="#ffffff" intensity="0.3" position="0 2 0"></a-light>
+        
+        <!-- Marcador AR com configurações otimizadas -->
+        <a-marker 
+            type="pattern" 
+            url="assets/marcador.patt"
+            raycaster="objects: .clickable"
+            emitevents="true"
+            cursor="fuse: false; rayOrigin: mouse;">
+            
+            <!-- Modelo 3D com configurações melhoradas -->
             <a-gltf-model
                 id="modelo"
                 src="#bookshelf"
-                position="0 0.75 0"
-                scale="1 1 1"
+                position="0 0.1 0"
+                scale="0.5 0.5 0.5"
                 rotation="-90 0 0"
-            ></a-gltf-model>
+                animation-mixer="loop: repeat"
+                class="clickable">
+                
+                <!-- Animação suave de entrada -->
+                <a-animation
+                    attribute="scale"
+                    from="0 0 0"
+                    to="0.5 0.5 0.5"
+                    dur="1000"
+                    easing="ease-out-bounce"
+                    begin="markerFound">
+                </a-animation>
+                
+                <!-- Animação suave de saída -->
+                <a-animation
+                    attribute="scale"
+                    from="0.5 0.5 0.5"
+                    to="0 0 0"
+                    dur="500"
+                    easing="ease-in"
+                    begin="markerLost">
+                </a-animation>
+            </a-gltf-model>
+            
+            <!-- Sombra opcional (comentada para melhor performance) -->
+            <!-- <a-plane 
+                position="0 0 0" 
+                rotation="-90 0 0" 
+                width="2" 
+                height="2" 
+                color="#000000" 
+                opacity="0.2" 
+                shadow="receive: true">
+            </a-plane> -->
         </a-marker>
-
-        <a-entity camera></a-entity>
+        
+        <!-- Câmera com configurações otimizadas -->
+        <a-entity 
+            camera
+            look-controls="enabled: false"
+            wasd-controls="enabled: false"
+            cursor="rayOrigin: mouse">
+        </a-entity>
     </a-scene>
 
-    <!-- Script para Interação (Rotação com Drag) -->
     <script>
+        // Controle de carregamento
+        let isLoaded = false;
+        
         window.addEventListener('load', () => {
-            const model = document.querySelector('#modelo');
             const scene = document.querySelector('a-scene');
+            const loading = document.getElementById('loading');
+            const instructions = document.getElementById('instructions');
+            const toggleBtn = document.getElementById('toggle-instructions');
+            const model = document.querySelector('#modelo');
+            const marker = document.querySelector('a-marker');
             
+            // Remover tela de carregamento após alguns segundos
+            setTimeout(() => {
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+                isLoaded = true;
+            }, 3000);
+            
+            // Controle de instruções
+            let instructionsVisible = true;
+            toggleBtn.addEventListener('click', () => {
+                instructionsVisible = !instructionsVisible;
+                instructions.style.display = instructionsVisible ? 'block' : 'none';
+                toggleBtn.textContent = instructionsVisible ? '×' : '?';
+            });
+            
+            // Sistema de rotação melhorado
             let isDragging = false;
-            let previousClientX = 0;
-            let previousClientY = 0;
-
-            const startDrag = (event) => {
+            let previousMouseX = 0;
+            let currentRotationY = 0;
+            
+            const startRotation = (event) => {
+                if (!isLoaded || !model) return;
                 isDragging = true;
-                const touch = event.touches ? event.touches[0] : event;
-                previousClientX = touch.clientX;
-                previousClientY = touch.clientY;
-            };
-
-            const drag = (event) => {
-                if (!isDragging) return;
+                const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+                previousMouseX = clientX;
                 event.preventDefault();
-                const touch = event.touches ? event.touches[0] : event;
-                const deltaX = touch.clientX - previousClientX;
+            };
+            
+            const rotate = (event) => {
+                if (!isDragging || !model) return;
+                event.preventDefault();
                 
-                const currentRotation = model.getAttribute('rotation');
+                const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+                const deltaX = clientX - previousMouseX;
+                
+                // Rotação mais suave e controlada
+                currentRotationY += deltaX * 0.3;
                 
                 model.setAttribute('rotation', {
-                    x: currentRotation.x,
-                    y: currentRotation.y + deltaX * 0.5,
-                    z: currentRotation.z
+                    x: -90, // Mantém a orientação vertical
+                    y: currentRotationY,
+                    z: 0
                 });
-
-                previousClientX = touch.clientX;
-                previousClientY = touch.clientY;
+                
+                previousMouseX = clientX;
             };
-
-            const endDrag = () => {
+            
+            const stopRotation = () => {
                 isDragging = false;
             };
-
-            scene.addEventListener('mousedown', startDrag);
-            scene.addEventListener('mousemove', drag);
-            scene.addEventListener('mouseup', endDrag);
-            scene.addEventListener('mouseleave', endDrag);
-
-            scene.addEventListener('touchstart', startDrag);
-            scene.addEventListener('touchmove', drag);
-            scene.addEventListener('touchend', endDrag);
+            
+            // Event listeners para interação
+            scene.addEventListener('mousedown', startRotation);
+            scene.addEventListener('mousemove', rotate);
+            scene.addEventListener('mouseup', stopRotation);
+            scene.addEventListener('mouseleave', stopRotation);
+            
+            // Touch events para dispositivos móveis
+            scene.addEventListener('touchstart', startRotation, { passive: false });
+            scene.addEventListener('touchmove', rotate, { passive: false });
+            scene.addEventListener('touchend', stopRotation);
+            
+            // Eventos do marcador para feedback
+            if (marker) {
+                marker.addEventListener('markerFound', () => {
+                    console.log('Marcador encontrado!');
+                    if (loading && loading.style.display !== 'none') {
+                        loading.style.display = 'none';
+                    }
+                });
+                
+                marker.addEventListener('markerLost', () => {
+                    console.log('Marcador perdido!');
+                });
+            }
+            
+            // Tratamento de erros
+            scene.addEventListener('renderstart', () => {
+                console.log('Renderização AR iniciada');
+            });
+            
+            // Otimização de performance
+            scene.setAttribute('stats', 'false');
+            scene.setAttribute('inspector', 'false');
         });
+        
+        // Prevenção de zoom em dispositivos móveis
+        document.addEventListener('touchstart', function (event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
     </script>
 </body>
 </html>
