@@ -2,234 +2,86 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Biblioteca do Conhecimento AR</title>
     
-    <!-- A-Frame e AR.js -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-        
-        /* Indicador de carregamento */
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 1000;
-        }
-        
-        /* Instruções para o usuário */
-        #instructions {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            max-width: 250px;
-            z-index: 100;
-        }
-        
-        /* Controles de zoom */
-        #zoom-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 102;
-        }
-        
-        .zoom-btn {
-            width: 50px;
-            height: 50px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .zoom-btn:hover {
-            background: rgba(0,0,0,0.9);
-        }
-        
-        #rotation-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 102;
-        }
-        
-        .rotation-btn {
-            width: 50px;
-            height: 50px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 1000; text-align: center; }
+        #instructions { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px; font-size: 14px; max-width: 250px; z-index: 100; }
+        #controls-container { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 15px; z-index: 102; }
+        .control-group { display: flex; flex-direction: column; gap: 10px; align-items: center;}
+        .control-group span { color: white; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 5px; font-size: 12px; margin-bottom: 5px;}
+        .control-btn { width: 50px; height: 50px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 25px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .control-btn:hover { background: rgba(0,0,0,0.9); }
     </style>
 </head>
 <body>
-    <!-- Indicador de carregamento -->
     <div id="loading">
         <div>Carregando AR...</div>
-        <div style="font-size: 12px; margin-top: 10px;">
-            Aponte a câmera para o marcador
+        <div style="font-size: 12px; margin-top: 10px;">Aponte a câmera para o marcador</div>
+    </div>
+    
+    <div id="instructions">
+        <strong>Instruções:</strong><br>
+        • Aponte para o marcador Hiro.<br>
+        • Use os botões para controlar o zoom e a rotação.<br>
+        • Arraste na tela para girar.<br>
+        • Mantenha boa iluminação.
+    </div>
+    
+    <button id="toggle-instructions" style="position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; z-index: 101;">?</button>
+    
+    <div id="controls-container">
+        <div class="control-group">
+            <span>Rotação</span>
+            <button class="control-btn" id="rotate-left">↺</button>
+            <button class="control-btn" id="rotate-right">↻</button>
+        </div>
+        <div class="control-group">
+            <span>Zoom</span>
+            <button class="control-btn" id="zoom-in">+</button>
+            <button class="control-btn" id="zoom-out">−</button>
+            <button class="control-btn" id="reset-view" style="font-size: 16px;">⌂</button>
         </div>
     </div>
     
-    <!-- Instruções -->
-    <div id="instructions">
-        <strong>Instruções:</strong><br>
-        • Aponte para o marcador<br>
-        • Use os botões para controlar<br>
-        • Mantenha boa iluminação
-    </div>
-    
-    <!-- Botão para alternar instruções -->
-    <button id="toggle-instructions" style="position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; z-index: 101;">?</button>
-    
-    <!-- Controles de Zoom -->
-    <div id="zoom-controls">
-        <button class="zoom-btn" id="zoom-in">+</button>
-        <button class="zoom-btn" id="zoom-out">−</button>
-        <button class="zoom-btn" id="reset-zoom" style="font-size: 16px;">⌂</button>
-    </div>
-    
-    <!-- Controles de Rotação -->
-    <div id="rotation-controls">
-        <button class="rotation-btn" id="rotate-left">↺</button>
-        <button class="rotation-btn" id="rotate-right">↻</button>
-        <button class="rotation-btn" id="rotate-up">↑</button>
-        <button class="rotation-btn" id="rotate-down">↓</button>
-    </div>
-    
-    <!-- Cena AR -->
     <a-scene
         embedded
-        arjs="sourceType: webcam; 
-              debugUIEnabled: false; 
-              detectionMode: mono_and_matrix; 
-              matrixCodeType: 3x3;
-              trackingMethod: best;
-              maxDetectionRate: 30;
-              canvasWidth: 800;
-              canvasHeight: 600;
-              cameraParametersUrl: data/camera_para.dat;"
-        renderer="logarithmicDepthBuffer: true; 
-                 colorManagement: true; 
-                 sortObjects: true;
-                 antialias: true;"
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; trackingMethod: best;"
+        renderer="logarithmicDepthBuffer: true; colorManagement: true; antialias: true;"
         vr-mode-ui="enabled: false"
         loading-screen="enabled: false">
         
-        <!-- Assets -->
         <a-assets>
             <a-asset-item id="bookshelf" src="assets/estante.glb"></a-asset-item>
         </a-assets>
         
-        <!-- Iluminação otimizada -->
-        <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
-        <a-light type="directional" color="#ffffff" intensity="0.8" position="-2 4 2"></a-light>
-        <a-light type="point" color="#ffffff" intensity="0.3" position="0 2 0"></a-light>
+        <a-light type="ambient" color="#BBB" intensity="0.7"></a-light>
+        <a-light type="directional" color="#FFF" intensity="0.8" position="-2 4 2"></a-light>
         
-        <!-- Marcador AR com configurações otimizadas -->
-        <a-marker 
-            type="pattern" 
-            url="assets/marcador.patt"
-            raycaster="objects: .clickable"
-            emitevents="true"
-            cursor="fuse: false; rayOrigin: mouse;">
+        <a-marker preset="hiro" raycaster="objects: .clickable" emitevents="true">
             
-            <!-- Modelo 3D com configurações melhoradas -->
             <a-gltf-model
                 id="modelo"
                 src="#bookshelf"
-                position="0 0.2 0"
+                position="0 0 0"
                 scale="0.3 0.3 0.3"
-                rotation="0 180 0"
-                animation-mixer="loop: repeat"
+                rotation="0 0 0"
                 class="clickable">
                 
-                <!-- Animação suave de entrada -->
-                <a-animation
-                    attribute="scale"
-                    from="0 0 0"
-                    to="0.3 0.3 0.3"
-                    dur="1000"
-                    easing="ease-out-bounce"
-                    begin="markerFound">
-                </a-animation>
-                
-                <!-- Animação suave de saída -->
-                <a-animation
-                    attribute="scale"
-                    from="0.3 0.3 0.3"
-                    to="0 0 0"
-                    dur="500"
-                    easing="ease-in"
-                    begin="markerLost">
-                </a-animation>
+                <a-animation attribute="scale" from="0 0 0" to="0.3 0.3 0.3" dur="1000" easing="ease-out-bounce" begin="markerFound"></a-animation>
+                <a-animation attribute="scale" from="0.3 0.3 0.3" to="0 0 0" dur="500" easing="ease-in" begin="markerLost"></a-animation>
             </a-gltf-model>
-            
-            <!-- Sombra opcional (comentada para melhor performance) -->
-            <!-- <a-plane 
-                position="0 0 0" 
-                rotation="-90 0 0" 
-                width="2" 
-                height="2" 
-                color="#000000" 
-                opacity="0.2" 
-                shadow="receive: true">
-            </a-plane> -->
         </a-marker>
         
-        <!-- Câmera com configurações otimizadas -->
-        <a-entity 
-            id="cameraRig"
-            position="0 0 0">
-            <a-camera
-                id="camera"
-                look-controls="enabled: false"
-                wasd-controls="enabled: false"
-                cursor="rayOrigin: mouse"
-                zoom="1">
-            </a-camera>
-        </a-entity>
+        <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-        // Controle de carregamento
-        let isLoaded = false;
-        
         window.addEventListener('load', () => {
             const scene = document.querySelector('a-scene');
             const loading = document.getElementById('loading');
@@ -237,107 +89,110 @@
             const toggleBtn = document.getElementById('toggle-instructions');
             const model = document.querySelector('#modelo');
             const marker = document.querySelector('a-marker');
+
+            // --- Constantes de Controle ---
+            const INITIAL_SCALE = { x: 0.3, y: 0.3, z: 0.3 };
+            const INITIAL_ROTATION = { x: 0, y: 0, z: 0 };
+            const ZOOM_STEP = 0.05;
+            const ROTATION_STEP = 15; // em graus
+
+            // Esconder tela de carregamento quando a cena estiver pronta
+            scene.addEventListener('loaded', () => {
+                if (loading) loading.style.display = 'none';
+            });
             
-            // Remover tela de carregamento após alguns segundos
-            setTimeout(() => {
-                if (loading) {
-                    loading.style.display = 'none';
-                }
-                isLoaded = true;
-            }, 3000);
-            
-            // Controle de instruções
+            // Controle de visibilidade das instruções
             let instructionsVisible = true;
             toggleBtn.addEventListener('click', () => {
                 instructionsVisible = !instructionsVisible;
                 instructions.style.display = instructionsVisible ? 'block' : 'none';
-                toggleBtn.textContent = instructionsVisible ? '×' : '?';
+                toggleBtn.textContent = instructionsVisible ? '?' : 'i';
             });
             
-            // Sistema de rotação melhorado
-            let isDragging = false;
-            let previousMouseX = 0;
-            let currentRotationY = 0;
-            
-            const startRotation = (event) => {
-                if (!isLoaded || !model) return;
-                isDragging = true;
-                const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-                previousMouseX = clientX;
-                event.preventDefault();
-            };
-            
-            const rotate = (event) => {
-                if (!isDragging || !model) return;
-                event.preventDefault();
-                
-                const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-                const deltaX = clientX - previousMouseX;
-                
-                // Rotação mais suave e controlada
-                currentRotationY += deltaX * 0.3;
-                
-                model.setAttribute('rotation', {
-                    x: -90, // Mantém a orientação vertical
-                    y: currentRotationY,
-                    z: 0
+            // --- Lógica dos Botões de Controle ---
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                const currentScale = model.getAttribute('scale');
+                model.setAttribute('scale', {
+                    x: currentScale.x + ZOOM_STEP,
+                    y: currentScale.y + ZOOM_STEP,
+                    z: currentScale.z + ZOOM_STEP,
                 });
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                const currentScale = model.getAttribute('scale');
+                const newScaleX = Math.max(0.01, currentScale.x - ZOOM_STEP);
+                const newScaleY = Math.max(0.01, currentScale.y - ZOOM_STEP);
+                const newScaleZ = Math.max(0.01, currentScale.z - ZOOM_STEP);
+                model.setAttribute('scale', { x: newScaleX, y: newScaleY, z: newScaleZ });
+            });
+
+            document.getElementById('rotate-left').addEventListener('click', () => {
+                model.object3D.rotation.y += THREE.MathUtils.degToRad(ROTATION_STEP);
+            });
+
+            document.getElementById('rotate-right').addEventListener('click', () => {
+                model.object3D.rotation.y -= THREE.MathUtils.degToRad(ROTATION_STEP);
+            });
+            
+            document.getElementById('reset-view').addEventListener('click', () => {
+                model.setAttribute('scale', INITIAL_SCALE);
+                model.setAttribute('rotation', INITIAL_ROTATION);
+            });
+
+            // --- Lógica de Rotação com Arraste (Mouse/Toque) ---
+            let isDragging = false;
+            let previousClientX = 0;
+            
+            const startDrag = (event) => {
+                isDragging = true;
+                previousClientX = event.touches ? event.touches[0].clientX : event.clientX;
+                event.preventDefault();
+            };
+            
+            const onDrag = (event) => {
+                if (!isDragging) return;
+                event.preventDefault();
                 
-                previousMouseX = clientX;
+                const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+                const deltaX = clientX - previousClientX;
+                
+                // Rotaciona o modelo no seu eixo Y (vertical)
+                model.object3D.rotation.y += deltaX * 0.01;
+                
+                previousClientX = clientX;
             };
             
-            const stopRotation = () => {
-                isDragging = false;
-            };
+            const stopDrag = () => { isDragging = false; };
             
-            // Event listeners para interação
-            scene.addEventListener('mousedown', startRotation);
-            scene.addEventListener('mousemove', rotate);
-            scene.addEventListener('mouseup', stopRotation);
-            scene.addEventListener('mouseleave', stopRotation);
+            // Eventos para mouse
+            scene.addEventListener('mousedown', startDrag);
+            scene.addEventListener('mousemove', onDrag);
+            scene.addEventListener('mouseup', stopDrag);
+            scene.addEventListener('mouseleave', stopDrag);
             
-            // Touch events para dispositivos móveis
-            scene.addEventListener('touchstart', startRotation, { passive: false });
-            scene.addEventListener('touchmove', rotate, { passive: false });
-            scene.addEventListener('touchend', stopRotation);
+            // Eventos para toque em dispositivos móveis
+            scene.addEventListener('touchstart', startDrag, { passive: false });
+            scene.addEventListener('touchmove', onDrag, { passive: false });
+            scene.addEventListener('touchend', stopDrag);
             
-            // Eventos do marcador para feedback
+            // Feedback no console sobre o marcador
             if (marker) {
                 marker.addEventListener('markerFound', () => {
                     console.log('Marcador encontrado!');
-                    if (loading && loading.style.display !== 'none') {
-                        loading.style.display = 'none';
-                    }
+                    if (loading) loading.style.display = 'none';
                 });
                 
-                marker.addEventListener('markerLost', () => {
-                    console.log('Marcador perdido!');
-                });
-            }
-            
-            // Tratamento de erros
-            scene.addEventListener('renderstart', () => {
-                console.log('Renderização AR iniciada');
-            });
-            
-            // Otimização de performance
-            scene.setAttribute('stats', 'false');
-            scene.setAttribute('inspector', 'false');
-        });
-        
-        // Prevenção de zoom em dispositivos móveis
-        document.addEventListener('touchstart', function (event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
+                marker.addEventListener('markerLost', () => console.log('Marcador perdido!'));
             }
         });
         
+        // Prevenção de gestos de zoom/duplo-toque na página
+        document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
         let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
+        document.addEventListener('touchend', (e) => {
             const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
+            if (now - lastTouchEnd <= 300) e.preventDefault();
             lastTouchEnd = now;
         }, false);
     </script>
