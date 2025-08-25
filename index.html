@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca do Conhecimento AR</title>
+    <!-- Importação da biblioteca A-Frame -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- Importação da biblioteca AR.js para A-Frame -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+
+    <!-- A tag <a-scene> é o contêiner principal para toda a experiência 3D e AR. -->
+    <!-- 'embedded' permite que a cena se integre à página web. -->
+    <!-- 'arjs' ativa as funcionalidades de Realidade Aumentada. -->
+    <a-scene embedded arjs>
+
+        <!-- A seção <a-assets> é usada para pré-carregar recursos, como modelos 3D. -->
+        <!-- Isso garante que o modelo esteja pronto antes de a cena tentar renderizá-lo. -->
+        <a-assets>
+            <!-- Substitua 'assets/estante.glb' pelo caminho correto para o seu modelo 3D. -->
+            <a-asset-item id="bookshelf" src="assets/estante.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- A tag <a-marker> define o marcador que será rastreado no mundo real. -->
+        <!-- 'type="pattern"' indica que estamos usando um marcador de padrão. -->
+        <!-- 'url' aponta para o arquivo .patt que você gerou ou baixou. -->
+        <!-- Substitua 'assets/marcador.patt' pelo caminho correto para o seu arquivo de padrão. -->
+        <a-marker type="pattern" url="assets/marcador.patt">
+
+            <!-- A entidade <a-gltf-model> renderiza o modelo 3D. -->
+            <!-- 'src="#bookshelf"' referencia o modelo pré-carregado nos assets. -->
+            <!-- 'position' ajusta a posição do modelo em relação ao centro do marcador (eixos x, y, z). -->
+            <!-- 'scale' ajusta o tamanho do modelo. Ajuste esses valores conforme necessário. -->
+            <a-gltf-model
+                src="#bookshelf"
+                position="0 0.5 0"
+                scale="0.1 0.1 0.1"
+                rotation="-90 0 0"
+            >
+                <!-- A tag <a-animation> é aninhada dentro do modelo para animá-lo. -->
+                <!-- 'attribute="rotation"' especifica que a propriedade de rotação será animada. -->
+                <!-- 'to="0 360 0"' define o estado final da rotação (360 graus no eixo Y). -->
+                <!-- 'dur="20000"' define a duração da animação em milissegundos (20 segundos). -->
+                <!-- 'repeat="indefinite"' faz com que a animação entre em loop infinito. -->
+                <!-- 'easing="linear"' garante uma velocidade de rotação constante. -->
+                <a-animation
+                    attribute="rotation"
+                    to="-90 360 0"
+                    dur="20000"
+                    repeat="indefinite"
+                    easing="linear"
+                ></a-animation>
+            </a-gltf-model>
+
+        </a-marker>
+
+        <!-- A entidade <a-camera-static> é necessária para o AR.js funcionar corretamente. -->
+        <a-entity camera></a-entity>
+
+    </a-scene>
+</body>
+</html>
