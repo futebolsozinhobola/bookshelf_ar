@@ -43,18 +43,57 @@
             z-index: 100;
         }
         
-        /* Botão para alternar instruções */
-        #toggle-instructions {
+        /* Controles de zoom */
+        #zoom-controls {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 102;
+        }
+        
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
             background: rgba(0,0,0,0.7);
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 5px;
+            border-radius: 25px;
+            font-size: 24px;
             cursor: pointer;
-            z-index: 101;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .zoom-btn:hover {
+            background: rgba(0,0,0,0.9);
+        }
+        
+        #rotation-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 102;
+        }
+        
+        .rotation-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -71,12 +110,27 @@
     <div id="instructions">
         <strong>Instruções:</strong><br>
         • Aponte para o marcador<br>
-        • Toque e arraste para rotacionar<br>
+        • Use os botões para controlar<br>
         • Mantenha boa iluminação
     </div>
     
     <!-- Botão para alternar instruções -->
-    <button id="toggle-instructions">?</button>
+    <button id="toggle-instructions" style="position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; z-index: 101;">?</button>
+    
+    <!-- Controles de Zoom -->
+    <div id="zoom-controls">
+        <button class="zoom-btn" id="zoom-in">+</button>
+        <button class="zoom-btn" id="zoom-out">−</button>
+        <button class="zoom-btn" id="reset-zoom" style="font-size: 16px;">⌂</button>
+    </div>
+    
+    <!-- Controles de Rotação -->
+    <div id="rotation-controls">
+        <button class="rotation-btn" id="rotate-left">↺</button>
+        <button class="rotation-btn" id="rotate-right">↻</button>
+        <button class="rotation-btn" id="rotate-up">↑</button>
+        <button class="rotation-btn" id="rotate-down">↓</button>
+    </div>
     
     <!-- Cena AR -->
     <a-scene
@@ -86,12 +140,14 @@
               detectionMode: mono_and_matrix; 
               matrixCodeType: 3x3;
               trackingMethod: best;
-              maxDetectionRate: 60;
-              canvasWidth: 640;
-              canvasHeight: 480;"
+              maxDetectionRate: 30;
+              canvasWidth: 800;
+              canvasHeight: 600;
+              cameraParametersUrl: data/camera_para.dat;"
         renderer="logarithmicDepthBuffer: true; 
                  colorManagement: true; 
-                 sortObjects: true;"
+                 sortObjects: true;
+                 antialias: true;"
         vr-mode-ui="enabled: false"
         loading-screen="enabled: false">
         
@@ -117,9 +173,9 @@
             <a-gltf-model
                 id="modelo"
                 src="#bookshelf"
-                position="0 0.1 0"
-                scale="0.5 0.5 0.5"
-                rotation="-90 0 0"
+                position="0 0.2 0"
+                scale="0.3 0.3 0.3"
+                rotation="0 180 0"
                 animation-mixer="loop: repeat"
                 class="clickable">
                 
@@ -127,7 +183,7 @@
                 <a-animation
                     attribute="scale"
                     from="0 0 0"
-                    to="0.5 0.5 0.5"
+                    to="0.3 0.3 0.3"
                     dur="1000"
                     easing="ease-out-bounce"
                     begin="markerFound">
@@ -136,7 +192,7 @@
                 <!-- Animação suave de saída -->
                 <a-animation
                     attribute="scale"
-                    from="0.5 0.5 0.5"
+                    from="0.3 0.3 0.3"
                     to="0 0 0"
                     dur="500"
                     easing="ease-in"
@@ -158,10 +214,15 @@
         
         <!-- Câmera com configurações otimizadas -->
         <a-entity 
-            camera
-            look-controls="enabled: false"
-            wasd-controls="enabled: false"
-            cursor="rayOrigin: mouse">
+            id="cameraRig"
+            position="0 0 0">
+            <a-camera
+                id="camera"
+                look-controls="enabled: false"
+                wasd-controls="enabled: false"
+                cursor="rayOrigin: mouse"
+                zoom="1">
+            </a-camera>
         </a-entity>
     </a-scene>
 
