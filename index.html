@@ -12,22 +12,25 @@
 <body style="margin: 0; overflow: hidden;">
 
     <!-- A-Frame Scene -->
-    <!-- ATUALIZAÇÃO: Adicionamos parâmetros ao 'arjs' para solicitar uma resolução maior da câmera -->
-    <!-- Isso melhora a qualidade da imagem, mas pode impactar o desempenho em celulares mais antigos -->
-    <a-scene embedded arjs='sourceType: webcam; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960;'>
+    <!-- CORREÇÃO: Simplificamos a configuração do arjs para maior compatibilidade. -->
+    <a-scene embedded arjs>
+
+        <!-- CORREÇÃO: Adicionamos luzes à cena. Sem luz, o modelo 3D fica preto e invisível. -->
+        <!-- Luz Ambiente: Ilumina todas as partes do modelo igualmente. -->
+        <a-light type="ambient" color="#888"></a-light>
+        <!-- Luz Direcional: Simula uma fonte de luz como o sol, criando realces e sombras. -->
+        <a-light type="directional" color="#FFF" intensity="0.8" position="-1 1 2"></a-light>
+
         <a-assets>
             <a-asset-item id="bookshelf" src="assets/estante.glb"></a-asset-item>
         </a-assets>
 
         <a-marker type="pattern" url="assets/marcador.patt">
-            <!-- Modelo 3D Interativo -->
-            <!-- ATUALIZAÇÃO: Aumentamos a 'scale' para o modelo parecer maior -->
-            <!-- e ajustamos a posição 'y' para que ele continue 'sentado' no marcador -->
             <a-gltf-model
                 id="modelo"
                 src="#bookshelf"
                 position="0 0.75 0"
-                scale="0.25 0.25 0.25"
+                scale="1 1 1"
                 rotation="-90 0 0"
             ></a-gltf-model>
         </a-marker>
@@ -45,7 +48,6 @@
             let previousClientX = 0;
             let previousClientY = 0;
 
-            // Função para iniciar o arraste (mouse ou toque)
             const startDrag = (event) => {
                 isDragging = true;
                 const touch = event.touches ? event.touches[0] : event;
@@ -53,19 +55,14 @@
                 previousClientY = touch.clientY;
             };
 
-            // Função para mover o modelo durante o arraste
             const drag = (event) => {
                 if (!isDragging) return;
-
-                event.preventDefault(); // Previne o scroll da página no celular
+                event.preventDefault();
                 const touch = event.touches ? event.touches[0] : event;
                 const deltaX = touch.clientX - previousClientX;
                 
-                // A rotação atual do modelo
                 const currentRotation = model.getAttribute('rotation');
                 
-                // Atualiza a rotação no eixo Y (rotação horizontal)
-                // O valor 0.5 é um fator de sensibilidade, ajuste se necessário
                 model.setAttribute('rotation', {
                     x: currentRotation.x,
                     y: currentRotation.y + deltaX * 0.5,
@@ -76,18 +73,15 @@
                 previousClientY = touch.clientY;
             };
 
-            // Função para terminar o arraste
             const endDrag = () => {
                 isDragging = false;
             };
 
-            // Adiciona os event listeners para mouse
             scene.addEventListener('mousedown', startDrag);
             scene.addEventListener('mousemove', drag);
             scene.addEventListener('mouseup', endDrag);
             scene.addEventListener('mouseleave', endDrag);
 
-            // Adiciona os event listeners para toque (celular)
             scene.addEventListener('touchstart', startDrag);
             scene.addEventListener('touchmove', drag);
             scene.addEventListener('touchend', endDrag);
