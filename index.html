@@ -11,54 +11,84 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
 
-    <!-- A tag <a-scene> é o contêiner principal para toda a experiência 3D e AR. -->
-    <!-- 'embedded' permite que a cena se integre à página web. -->
-    <!-- 'arjs' ativa as funcionalidades de Realidade Aumentada. -->
+    <!-- A-Frame Scene -->
     <a-scene embedded arjs>
-
-        <!-- A seção <a-assets> é usada para pré-carregar recursos, como modelos 3D. -->
-        <!-- Isso garante que o modelo esteja pronto antes de a cena tentar renderizá-lo. -->
         <a-assets>
-            <!-- Substitua 'assets/estante.glb' pelo caminho correto para o seu modelo 3D. -->
             <a-asset-item id="bookshelf" src="assets/estante.glb"></a-asset-item>
         </a-assets>
 
-        <!-- A tag <a-marker> define o marcador que será rastreado no mundo real. -->
-        <!-- 'type="pattern"' indica que estamos usando um marcador de padrão. -->
-        <!-- 'url' aponta para o arquivo .patt que você gerou ou baixou. -->
-        <!-- Substitua 'assets/marcador.patt' pelo caminho correto para o seu arquivo de padrão. -->
         <a-marker type="pattern" url="assets/marcador.patt">
-
-            <!-- A entidade <a-gltf-model> renderiza o modelo 3D. -->
-            <!-- 'src="#bookshelf"' referencia o modelo pré-carregado nos assets. -->
-            <!-- 'position' ajusta a posição do modelo em relação ao centro do marcador (eixos x, y, z). -->
-            <!-- 'scale' ajusta o tamanho do modelo. Ajuste esses valores conforme necessário. -->
+            <!-- Modelo 3D Interativo -->
+            <!-- Adicionamos um ID 'modelo' para poder selecioná-lo com JavaScript -->
+            <!-- A animação automática foi removida -->
             <a-gltf-model
+                id="modelo"
                 src="#bookshelf"
                 position="0 0.5 0"
                 scale="0.1 0.1 0.1"
                 rotation="-90 0 0"
-            >
-                <!-- A tag <a-animation> é aninhada dentro do modelo para animá-lo. -->
-                <!-- 'attribute="rotation"' especifica que a propriedade de rotação será animada. -->
-                <!-- 'to="0 360 0"' define o estado final da rotação (360 graus no eixo Y). -->
-                <!-- 'dur="20000"' define a duração da animação em milissegundos (20 segundos). -->
-                <!-- 'repeat="indefinite"' faz com que a animação entre em loop infinito. -->
-                <!-- 'easing="linear"' garante uma velocidade de rotação constante. -->
-                <a-animation
-                    attribute="rotation"
-                    to="-90 360 0"
-                    dur="20000"
-                    repeat="indefinite"
-                    easing="linear"
-                ></a-animation>
-            </a-gltf-model>
-
+            ></a-gltf-model>
         </a-marker>
 
-        <!-- A entidade <a-camera-static> é necessária para o AR.js funcionar corretamente. -->
         <a-entity camera></a-entity>
-
     </a-scene>
+
+    <!-- Script para Interação (Rotação com Drag) -->
+    <script>
+        window.addEventListener('load', () => {
+            const model = document.querySelector('#modelo');
+            const scene = document.querySelector('a-scene');
+            
+            let isDragging = false;
+            let previousClientX = 0;
+            let previousClientY = 0;
+
+            // Função para iniciar o arraste (mouse ou toque)
+            const startDrag = (event) => {
+                isDragging = true;
+                const touch = event.touches ? event.touches[0] : event;
+                previousClientX = touch.clientX;
+                previousClientY = touch.clientY;
+            };
+
+            // Função para mover o modelo durante o arraste
+            const drag = (event) => {
+                if (!isDragging) return;
+
+                const touch = event.touches ? event.touches[0] : event;
+                const deltaX = touch.clientX - previousClientX;
+                
+                // A rotação atual do modelo
+                const currentRotation = model.getAttribute('rotation');
+                
+                // Atualiza a rotação no eixo Y (rotação horizontal)
+                // O valor 0.5 é um fator de sensibilidade, ajuste se necessário
+                model.setAttribute('rotation', {
+                    x: currentRotation.x,
+                    y: currentRotation.y + deltaX * 0.5,
+                    z: currentRotation.z
+                });
+
+                previousClientX = touch.clientX;
+                previousClientY = touch.clientY;
+            };
+
+            // Função para terminar o arraste
+            const endDrag = () => {
+                isDragging = false;
+            };
+
+            // Adiciona os event listeners para mouse
+            scene.addEventListener('mousedown', startDrag);
+            scene.addEventListener('mousemove', drag);
+            scene.addEventListener('mouseup', endDrag);
+            scene.addEventListener('mouseleave', endDrag);
+
+            // Adiciona os event listeners para toque (celular)
+            scene.addEventListener('touchstart', startDrag);
+            scene.addEventListener('touchmove', drag);
+            scene.addEventListener('touchend', endDrag);
+        });
+    </script>
 </body>
 </html>
